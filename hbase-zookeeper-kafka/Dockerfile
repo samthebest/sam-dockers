@@ -1,12 +1,15 @@
-FROM netknight/java-env:latest
-MAINTAINER Nicola Ferraro <nibbio84@gmail.com>
+FROM ubuntu:latest
+RUN apt-get update && apt-get -y install htop mc sysstat netcat net-tools lsof telnet traceroute wget busybox nano less ed vim man sudo zip unzip curl ssh openssl logrotate libc-bin locales
 
-# RUN yum install -y java-1.8.0-openjdk.x86_64
-# ENV JAVA_HOME=/usr/lib/jvm/jre
+RUN apt-get install -y software-properties-common
 
-# RUN yum install -y wget
-# RUN yum install -y nc
-# RUN yum install -y tar
+RUN echo oracle-java8-installer shared/accepted-oracle-license-v1-1 select true | /usr/bin/debconf-set-selections
+RUN add-apt-repository ppa:webupd8team/java
+RUN apt-get update
+RUN apt-get install -y oracle-java8-installer
+
+RUN export JAVA_HOME=/usr/lib/jvm/java-8-oracle/
+ENV JAVA_HOME /usr/lib/jvm/java-8-oracle/
 
 RUN mkdir /hbase-setup
 WORKDIR /hbase-setup
@@ -39,6 +42,7 @@ ENV PATH=$PATH:/opt/hbase/bin
 CMD /opt/hbase/bin/start-pseudo-distributed.sh
 
 RUN service ssh start
+ENV BASE_DIR /opt
 
 ENV PRODUCT_HOME $BASE_DIR/product
 
@@ -59,3 +63,13 @@ RUN wget -P $PRODUCT_HOME http://mirror.cc.columbia.edu/pub/software/apache/kafk
 RUN tar xf $PRODUCT_HOME/kafka_*.tgz -C $PRODUCT_HOME
 RUN ln -s $PRODUCT_HOME/kafka_2.11-${KAFKA_VERSION} $KAFKA_HOME
 ADD server.properties $KAFKA_HOME/config/server.properties
+
+# Start HBase
+
+CMD /opt/hbase/bin/start-pseudo-distributed.sh
+
+# Install sbt
+
+RUN echo "deb http://dl.bintray.com/sbt/debian /" | sudo tee -a /etc/apt/sources.list.d/sbt.list
+RUN sudo apt-get update
+RUN apt-get -y --force-yes install sbt
