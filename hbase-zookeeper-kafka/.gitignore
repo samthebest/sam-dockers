@@ -1,0 +1,5 @@
+vouchers/
+.ivy2
+*.tar.gz
+*.tgz
+
